@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tangkap Ambacong - Horror Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #c0c0c0;
+            line-height: 1.4;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* Start Screen */
+        #start-screen {
+            padding: 30px 0;
+        }
+        
+        .title {
+            font-size: 3rem;
+            color: #8b0000;
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 1rem;
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #808080;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .warning-box {
+            background-color: #111;
+            border: 1px solid #8b0000;
+            padding: 20px;
+            margin: 20px auto;
+            text-align: left;
+            max-width: 600px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.3);
+        }
+        
+        .warning-box h3 {
+            color: #ff4444;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions {
+            background-color: #111;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 20px auto;
+            text-align: left;
+            max-width: 600px;
+            border-radius: 5px;
+        }
+        
+        /* Game Screen */
+        #game-screen {
+            display: none;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            background-color: #111;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        
+        .game-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat {
+            font-size: 1.2rem;
+        }
+        
+        .stat-value {
+            color: #ff4444;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        #score-value {
+            color: #32cd32;
+        }
+        
+        #time-value {
+            color: #1e90ff;
+        }
+        
+        .game-area {
+            width: 100%;
+            height: 500px;
+            background-color: #111;
+            border: 2px solid #444;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Ambacong & Decoy */
+        .target {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.1s;
+            border-radius: 5px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .target:hover {
+            transform: scale(1.05);
+        }
+        
+        .ambacong {
+            border: 2px solid #8b0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        
+        .decoy {
+            border: 1px solid #444;
+            opacity: 0.8;
+        }
+        
+        /* Game Over Screen */
+        #game-over-screen {
+            display: none;
+            padding: 30px 0;
+        }
+        
+        .game-over-title {
+            font-size: 2.5rem;
+            color: #8b0000;
+            margin-bottom: 20px;
+        }
+        
+        .results {
+            background-color: #111;
+            border: 1px solid #444;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 400px;
+            border-radius: 5px;
+        }
+        
+        .result-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Jumpscare Screen */
+        #jumpscare-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #jumpscare-image {
+            max-width: 80%;
+            max-height: 80%;
+            border-radius: 10px;
+            animation: shake 0.1s infinite;
+        }
+        
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        
+        /* Buttons */
+        .btn {
+            background: linear-gradient(to bottom, #222, #111);
+            color: #c0c0c0;
+            border: 1px solid #444;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to bottom, #333, #222);
+            border-color: #666;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-start {
+            background: linear-gradient(to bottom, #8b0000, #660000);
+            border-color: #ff0000;
+            font-size: 1.3rem;
+            padding: 15px 40px;
+        }
+        
+        .btn-start:hover {
+            background: linear-gradient(to bottom, #a00000, #770000);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+        
+        /* Effects */
+        .blood-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(139, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.2rem;
+            }
+            
+            .game-area {
+                height: 400px;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .game-stats {
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-area {
+                height: 300px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div class="container" id="start-screen">
+        <h1 class="title">TANGKAP AMBACONG</h1>
+        <p class="subtitle">Sebuah entitas telah muncul dari kegelapan. Tangkap mereka sebelum mereka menghilang...</p>
+        
+        <div class="warning-box">
+            <h3>⚠️ PERINGATAN PENTING</h3>
+            <p>Game ini mengandung elemen horor yang intens dan jumpscare tiba-tiba.</p>
+            <p>Tidak disarankan untuk pemain dengan kondisi jantung lemah atau mudah kaget.</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>🎮 CARA BERMAIN:</h3>
+            <p>1. Klik gambar Ambacong yang muncul untuk menangkapnya</p>
+            <p>2. Hati-hati dengan gambar lain (decoy) yang menipu</p>
+            <p>3. Anda memiliki 5 nyawa</p>
+            <p>4. Tangkap sebanyak mungkin sebelum waktu habis</p>
+            <p>5. Game akan berakhir jika nyawa habis atau waktu habis</p>
+        </div>
+        
+        <button class="btn btn-start" id="start-btn">MULAI PERBURUAN</button>
+        
+        <div style="margin-top: 30px; color: #666; font-size: 0.9rem;">
+            <p>Game ini dibuat untuk hiburan. Semua efek jumpscare adalah bagian dari pengalaman game.</p>
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div class="container" id="game-screen">
+        <div class="game-header">
+            <div class="game-stats">
+                <div class="stat">SKOR: <span id="score-value" class="stat-value">0</span></div>
+                <div class="stat">NYAWA: <span id="lives-value" class="stat-value">5</span></div>
+                <div class="stat">WAKTU: <span id="time-value" class="stat-value">60</span>s</div>
+            </div>
+            <button class="btn" id="pause-btn">JEDA</button>
+        </div>
+        
+        <div class="game-area" id="game-area">
+            <div class="blood-effect" id="blood-effect"></div>
+            <div class="message" id="game-message"></div>
+            <!-- Targets akan muncul di sini -->
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn" id="back-btn">KEMBALI KE MENU</button>
+        </div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div class="container" id="game-over-screen">
+        <h2 class="game-over-title" id="game-over-title">PERBURUAN BERAKHIR</h2>
+        <p class="subtitle" id="game-over-text">Mereka terlalu kuat untuk ditangkap...</p>
+        
+        <div class="results">
+            <div class="result-item">
+                <span>Skor Akhir:</span>
+                <span id="final-score">0</span>
+            </div>
+            <div class="result-item">
+                <span>Ambacong Tertangkap:</span>
+                <span id="caught-count">0</span>
+            </div>
+            <div class="result-item">
+                <span>Waktu Tersisa:</span>
+                <span id="time-left">0s</span>
+            </div>
+        </div>
+        
+        <button class="btn" id="play-again-btn">MAIN LAGI</button>
+        <button class="btn" id="menu-btn">MENU UTAMA</button>
+    </div>
+    
+    <!-- Jumpscare Screen -->
+    <div id="jumpscare-screen">
+        <img id="jumpscare-image" src="https://files.catbox.moe/7jh8z5.jpg" alt="Jumpscare">
+    </div>
+    
+    <script>
+        // ===========================================
+        // VARIABEL DAN INISIALISASI
+        // ===========================================
+        
+        // Element UI
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const jumpscareScreen = document.getElementById('jumpscare-screen');
+        
+        // Game stats elements
+        const scoreValue = document.getElementById('score-value');
+        const livesValue = document.getElementById('lives-value');
+        const timeValue = document.getElementById('time-value');
+        
+        // Game area
+        const gameArea = document.getElementById('game-area');
+        const bloodEffect = document.getElementById('blood-effect');
+        const gameMessage = document.getElementById('game-message');
+        
+        // Buttons
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const backBtn = document.getElementById('back-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        
+        // Game over elements
+        const finalScore = document.getElementById('final-score');
+        const caughtCount = document.getElementById('caught-count');
+        const timeLeft = document.getElementById('time-left');
+        const gameOverTitle = document.getElementById('game-over-title');
+        const gameOverText = document.getElementById('game-over-text');
+        
+        // ===========================================
+        // VARIABEL GAME STATE
+        // ===========================================
+        
+        let score = 0;
+        let lives = 5;
+        let time = 60;
+        let gameRunning = false;
+        let gamePaused = false;
+        let missedCount = 0;
+        let ambacongCaught = 0;
+        
+        let timerInterval;
+        let spawnInterval;
+        let activeTargets = [];
+        
+        // ===========================================
+        // EVENT LISTENERS
+        // ===========================================
+        
+        // Setup semua event listener
+        function setupEventListeners() {
+            // Tombol Start
+            startBtn.addEventListener('click', startGame);
+            
+            // Tombol Pause
+            pauseBtn.addEventListener('click', togglePause);
+            
+            // Tombol Back
+            backBtn.addEventListener('click', goToMenu);
+            
+            // Tombol Game Over
+            playAgainBtn.addEventListener('click', startGame);
+            menuBtn.addEventListener('click', goToMenu);
+            
+            // Klik pada game area (untuk mobile compatibility)
+            gameArea.addEventListener('click', function(e) {
+                if (e.target.classList.contains('target')) {
+                    handleTargetClick(e.target);
+                }
+            });
+        }
+        
+        // ===========================================
+        // FUNGSI GAME
+        // ===========================================
+        
+        // Mulai game baru
+        function startGame() {
+            console.log("Memulai game...");
+            
+            // Reset game state
+            resetGame();
+            
+            // Tampilkan game screen
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // Update UI
+            updateUI();
+            
+            // Mulai game loop
+            gameRunning = true;
+            gamePaused = false;
+            
+            // Mulai timer
+            startTimer();
+            
+            // Mulai spawn targets
+            startSpawning();
+            
+            // Spawn target pertama
+            setTimeout(() => spawnTarget(), 500);
+            setTimeout(() => spawnTarget(), 1000);
+            
+            console.log("Game dimulai!");
+        }
+        
+        // Reset game state
+        function resetGame() {
+            score = 0;
+            lives = 5;
+            time = 60;
+            missedCount = 0;
+            ambacongCaught = 0;
+            gameRunning = false;
+            gamePaused = false;
+            
+            // Hapus semua target
+            clearAllTargets();
+            
+            // Hapus interval
+            if (timerInterval) clearInterval(timerInterval);
+            if (spawnInterval) clearInterval(spawnInterval);
+            
+            // Reset efek visual
+            bloodEffect.style.opacity = '0';
+            gameMessage.style.opacity = '0';
+        }
+        
+        // Update UI elements
+        function updateUI() {
+            scoreValue.textContent = score;
+            livesValue.textContent = lives;
+            timeValue.textContent = time;
+            
+            // Update warna nyawa
+            if (lives <= 2) {
+                livesValue.style.color = '#ff0000';
+            } else if (lives <= 3) {
+                livesValue.style.color = '#ffa500';
+            } else {
+                livesValue.style.color = '#ff4444';
+            }
+            
+            // Update warna waktu
+            if (time <= 10) {
+                timeValue.style.color = '#ff0000';
+            } else if (time <= 30) {
+                timeValue.style.color = '#ffa500';
+            } else {
+                timeValue.style.color = '#1e90ff';
+            }
+        }
+        
+        // ===========================================
+        // TIMER DAN SPAWNING
+        // ===========================================
+        
+        // Mulai timer game
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!gamePaused && gameRunning) {
+                    time--;
+                    updateUI();
+                    
+                    if (time <= 0) {
+                        endGame(true); // Waktu habis
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Mulai spawning targets
+        function startSpawning() {
+            spawnInterval = setInterval(() => {
+                if (!gamePaused && gameRunning) {
+                    spawnTarget();
+                    
+                    // Sesekali spawn 2 target sekaligus
+                    if (Math.random() < 0.2) {
+                        setTimeout(() => spawnTarget(), 300);
+                    }
+                }
+            }, 1500);
+        }
+        
+        // Spawn target baru
+        function spawnTarget() {
+            if (!gameRunning || activeTargets.length >= 8) return;
+            
+            const isAmbacong = Math.random() < 0.4; // 40% Ambacong
+            const target = document.createElement('div');
+            const size = isAmbacong ? 80 : 60;
+            
+            // Random position
+            const maxX = gameArea.offsetWidth - size - 10;
+            const maxY = gameArea.offsetHeight - size - 10;
+            
+            if (maxX <= 0 || maxY <= 0) return; // Game area terlalu kecil
+            
+            const x = Math.floor(Math.random() * maxX) + 5;
+            const y = Math.floor(Math.random() * maxY) + 5;
+            
+            // Setup target
+            target.className = isAmbacong ? 'target ambacong' : 'target decoy';
+            target.style.width = `${size}px`;
+            target.style.height = `${size}px`;
+            target.style.left = `${x}px`;
+            target.style.top = `${y}px`;
+            
+            // Set background image
+            if (isAmbacong) {
+                // Gunakan gambar Ambacong
+                target.style.backgroundImage = "url('https://files.catbox.moe/7jh8z5.jpg')";
+            } else {
+                // Buat warna random untuk decoy
+                const hue = Math.floor(Math.random() * 360);
+                target.style.backgroundColor = `hsl(${hue}, 70%, 30%)`;
+            }
+            
+            // Event listener untuk klik
+            target.addEventListener('click', () => handleTargetClick(target));
+            
+            // Tambah ke game area
+            gameArea.appendChild(target);
+            
+            // Simpan reference
+            const targetData = {
+                element: target,
+                isAmbacong: isAmbacong,
+                timeout: setTimeout(() => removeTarget(target, false), isAmbacong ? 2500 : 2000)
+            };
+            
+            activeTargets.push(targetData);
+            
+            // Animasi muncul
+            setTimeout(() => {
+                target.style.transition = 'opacity 0.3s, transform 0.3s';
+                target.style.opacity = '1';
+                target.style.transform = 'scale(1)';
+            }, 10);
+        }
+        
+        // ===========================================
+        // HANDLE TARGET CLICK
+        // ===========================================
+        
+        // Handle ketika target diklik
+        function handleTargetClick(target) {
+            if (!gameRunning || gamePaused) return;
+            
+            // Cari target data
+            const targetIndex = activeTargets.findIndex(t => t.element === target);
+            if (targetIndex === -1) return;
+            
+            const targetData = activeTargets[targetIndex];
+            
+            // Hapus timeout
+            clearTimeout(targetData.timeout);
+            
+            // Hapus dari array
+            activeTargets.splice(targetIndex, 1);
+            
+            if (targetData.isAmbacong) {
+                // Klik Ambacong - TAMBAH SKOR
+                score += 100;
+                ambacongCaught++;
+                
+                // Efek visual
+                target.style.transition = 'transform 0.2s, opacity 0.2s';
+                target.style.transform = 'scale(1.3) rotate(10deg)';
+                target.style.opacity = '0';
+                
+                // Tampilkan pesan
+                showMessage('+100', '#32cd32');
+                
+                // Efek darah
+                showBloodEffect();
+                
+            } else {
+                // Klik decoy - KURANGI NYAWA
+                lives--;
+                missedCount++;
+                
+                // Efek visual
+                target.style.transition = 'transform 0.2s, opacity 0.2s';
+                target.style.transform = 'scale(0.5) rotate(-45deg)';
+                target.style.opacity = '0';
+                
+                // Tampilkan pesan
+                showMessage('-1 NYAWA', '#ff4444');
+                
+                // Cek jika sudah 5 kali gagal (JUMPSCARE!)
+                if (missedCount >= 5) {
+                    triggerJumpscare();
+                }
+                
+                // Cek game over
+                if (lives <= 0) {
+                    endGame(false);
+                }
+            }
+            
+            // Update UI
+            updateUI();
+            
+            // Hapus elemen setelah animasi
+            setTimeout(() => {
+                if (target.parentNode === gameArea) {
+                    target.remove();
+                }
+            }, 200);
+        }
+        
+        // Hapus target (timeout)
+        function removeTarget(target, isAmbacong) {
+            if (!gameRunning) return;
+            
+            // Cari target data
+            const targetIndex = activeTargets.findIndex(t => t.element === target);
+            if (targetIndex === -1) return;
+            
+            // Hapus dari array
+            activeTargets.splice(targetIndex, 1);
+            
+            if (isAmbacong) {
+                // Ambacong lolos
+                lives--;
+                missedCount++;
+                
+                // Tampilkan pesan
+                showMessage('MELESAT! -1 NYAWA', '#ff4444');
+                
+                // Cek jika sudah 5 kali gagal
+                if (missedCount >= 5) {
+                    triggerJumpscare();
+                }
+                
+                // Cek game over
+                if (lives <= 0) {
+                    endGame(false);
+                }
+                
+                updateUI();
+            }
+            
+            // Animasi menghilang
+            target.style.transition = 'opacity 0.5s';
+            target.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (target.parentNode === gameArea) {
+                    target.remove();
+                }
+            }, 500);
+        }
+        
+        // Hapus semua target
+        function clearAllTargets() {
+            activeTargets.forEach(targetData => {
+                clearTimeout(targetData.timeout);
+                if (targetData.element.parentNode === gameArea) {
+                    targetData.element.remove();
+                }
+            });
+            activeTargets = [];
+        }
+        
+        // ===========================================
+        // GAME OVER DAN JUMPSCARE
+        // ===========================================
+        
+        // Akhiri game
+        function endGame(timeout) {
+            if (!gameRunning) return;
+            
+            gameRunning = false;
+            
+            // Hentikan interval
+            clearInterval(timerInterval);
+            clearInterval(spawnInterval);
+            
+            // Hapus semua target
+            clearAllTargets();
+            
+            // Update game over screen
+            finalScore.textContent = score;
+            caughtCount.textContent = ambacongCaught;
+            timeLeft.textContent = `${time}s`;
+            
+            if (timeout) {
+                gameOverTitle.textContent = 'WAKTU HABIS';
+                gameOverText.textContent = 'Mereka masih di luar sana...';
+            } else {
+                gameOverTitle.textContent = 'GAME OVER';
+                gameOverText.textContent = 'Mereka terlalu kuat...';
+            }
+            
+            // Tampilkan game over screen
+            setTimeout(() => {
+                gameScreen.style.display = 'none';
+                gameOverScreen.style.display = 'block';
+            }, 1000);
+        }
+        
+        // Trigger jumpscare
+        function triggerJumpscare() {
+            if (!gameRunning) return;
+            
+            console.log("JUMPSCARE!");
+            
+            // Hentikan game sementara
+            gameRunning = false;
+            clearAllTargets();
+            
+            // Tampilkan jumpscare screen
+            jumpscareScreen.style.display = 'flex';
+            
+            // Putar suara jumpscare
+            playJumpscareSound();
+            
+            // Sembunyikan setelah 2 detik
+            setTimeout(() => {
+                jumpscareScreen.style.display = 'none';
+                
+                // Lanjutkan game
+                gameRunning = true;
+                
+                // Game over setelah jumpscare
+                setTimeout(() => {
+                    endGame(false);
+                }, 500);
+            }, 2000);
+        }
+        
+        // Putar suara jumpscare
+        function playJumpscareSound() {
+            try {
+                // Coba buat audio element
+                const audio = new Audio('https://files.catbox.moe/l6pops.mp4');
+                audio.volume = 0.8;
+                audio.play().catch(e => {
+                    console.log("Audio tidak bisa diputar:", e);
+                    // Fallback: buat suara menggunakan Web Audio API
+                    createFallbackSound();
+                });
+            } catch (e) {
+                console.log("Error memutar audio:", e);
+                createFallbackSound();
+            }
+        }
+        
+        // Buat suara fallback
+        function createFallbackSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Frekuensi tinggi untuk efek mengejutkan
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.5);
+                
+                gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log("Web Audio API tidak didukung");
+            }
+        }
+        
+        // ===========================================
+        // EFFECTS DAN UI HELPER
+        // ===========================================
+        
+        // Tampilkan efek darah
+        function showBloodEffect() {
+            bloodEffect.style.opacity = '0.7';
+            setTimeout(() => {
+                bloodEffect.style.opacity = '0';
+            }, 300);
+        }
+        
+        // Tampilkan pesan sementara
+        function showMessage(text, color) {
+            gameMessage.textContent = text;
+            gameMessage.style.color = color;
+            gameMessage.style.opacity = '1';
+            
+            setTimeout(() => {
+                gameMessage.style.opacity = '0';
+            }, 800);
+        }
+        
+        // Toggle pause
+        function togglePause() {
+            gamePaused = !gamePaused;
+            pauseBtn.textContent = gamePaused ? 'LANJUT' : 'JEDA';
+            
+            if (gamePaused) {
+                showMessage('GAME DIJEDA', '#ffff00');
+            }
+        }
+        
+        // Kembali ke menu
+        function goToMenu() {
+            resetGame();
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+        }
+        
+        // ===========================================
+        // INISIALISASI
+        // ===========================================
+        
+        // Inisialisasi game
+        function init() {
+            console.log("Game diinisialisasi");
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Tampilkan start screen
+            startScreen.style.display = 'block';
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            jumpscareScreen.style.display = 'none';
+            
+            // Preload jumpscare image
+            const img = new Image();
+            img.src = 'https://files.catbox.moe/7jh8z5.jpg';
+            
+            console.log("Game siap!");
+        }
+        
+        // Jalankan inisialisasi ketika halaman dimuat
+        window.addEventListener('DOMContentLoaded', init);
+        
+        // Fallback jika DOMContentLoaded sudah terlewat
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(init, 100);
+        }
+    </script>
+</body>
+</html>
